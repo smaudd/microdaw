@@ -1,7 +1,0 @@
-{
-  "name": "test",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "custom"
-}
