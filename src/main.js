@@ -1,14 +1,7 @@
-import "es6-shim";
-import initNavigation from "./navigation.js";
-import App from "./App.svelte";
-
-// initNavigation();
+import App from "./components/App.svelte";
 
 const app = new App({
-  target: document.body,
-  props: {
-    name: "world"
-  }
+  target: document.body
 });
 
 export default app;
