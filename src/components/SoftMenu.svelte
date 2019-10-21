@@ -1,7 +1,18 @@
 <script>
-  import { afterUpdate } from "svelte";
-  import { fade } from "svelte/transition";
-  import { sequencer, playPause } from "../sequencer";
+  import Sound from './Sound.svelte'
+  import { afterUpdate } from 'svelte'
+  import { togglePadMenu, selectedSound, sounds } from '../lib/state'
+  import { get } from 'svelte/store'
+  import { fade } from 'svelte/transition'
+  import { sequencer, playPause } from '../lib/sequencer'
+
+  export let sound = null
+
+  selectedSound.subscribe(value => {
+    // console.log(value)
+    sound = get(sounds)[value]
+    console.log(get(sounds))
+  })
 </script>
 
 <style>
@@ -20,8 +31,18 @@
     color: salmon;
     background: red;
   }
+
+  .global {
+  }
 </style>
 
 <div class="soft-menu">
+  <div class="global">
+    <div>SOUND {$selectedSound}</div>
+    <div on:click={() => togglePadMenu(true, $selectedSound)}>OPEN MENU</div>
+    {#if sound}
+      <Sound sound={sound} />
+    {/if}
+  </div>
   <button class="play-button" on:click={playPause}>PLAY</button>
 </div>

@@ -1,5 +1,6 @@
 <script>
   import Pad from "./Pad.svelte";
+  import { padMenu } from "../lib/state";
   export let pads;
 </script>
 
@@ -8,7 +9,6 @@
     padding: 0;
     margin: 0;
     width: 100%;
-    height: 90%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr 1fr;

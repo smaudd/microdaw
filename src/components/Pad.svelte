@@ -1,33 +1,57 @@
 <script>
-  import Tone from "tone";
-  import { afterUpdate } from "svelte";
-  export let padID;
-  export let active;
-  import { scale } from 'svelte/transition';
-	import { quintOut } from 'svelte/easing';
-  const synth = new Tone.Synth().toMaster();
+  import Tone from 'tone'
+  import { afterUpdate } from 'svelte'
+  import { changeSelectedSound } from '../lib/state'
+  export let padID
+  export let active
+  export let note
+  const synth = new Tone.Synth().toMaster()
+  let timeout
   afterUpdate(() => {
     if (active) {
-      synth.triggerAttackRelease("C3", "2n");
+      // synth.triggerAttackRelease("C3", "2n");
     }
-  });
+  })
 
-  const handleClick = () => {
-    active = true
-    setTimeout(() => active = false, 200)
+  const mousedown = e => {
+    timeout = setTimeout(() => {
+      changeSelectedSound(padID)
+    }, 400)
+  }
+
+  const mouseup = () => {
+    clearTimeout(timeout)
   }
 </script>
 
 <style>
   .pad {
-    border-radius: 5px;
-    background: lightsalmon;
-    margin: 5px;
+    border-radius: var(--px0);
+    margin: var(--px0);
+    border: 1px solid var(--primary);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   }
   .active {
-    background: lightpink;
+    animation: fade 0.5s forwards;
+  }
+
+  @keyframes fade {
+    from {
+      border: 0;
+      background: transparent;
+    }
+    to {
+      border: 5px solid var(--secondary);
+      background: var(--primary-light);
+    }
   }
 </style>
 
-<div id={padID} on:click={handleClick} class={active ? 'pad active' : 'pad'} 
-transition:scale={{duration: 500, delay: 500, opacity: 0.5, start: 0.5, easing: quintOut}} />
+<div
+  id={padID}
+  on:mousedown={mousedown}
+  on:mouseup={mouseup}
+  class="pad"
+  class:active>
+  <p>{note}</p>
+</div>

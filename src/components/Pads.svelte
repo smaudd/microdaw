@@ -5,17 +5,14 @@
 
 <style>
   .pads-grid {
-    padding: 0;
-    margin: 0;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
-    background: black;
   }
 </style>
 
 <div class="pads-grid">
   {#each pads as pad}
-    <Pad padID={pad.id} active={pad.active} />
+    <Pad padID={pad.id} active={pad.active} note={pad.note} />
   {/each}
 </div>
