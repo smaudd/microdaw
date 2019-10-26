@@ -52,6 +52,7 @@
         pads[value.step - 1].active = false
       }, 200)
     }
+    padMapping()
   })
   // Clean subscription
   onDestroy(u1, u2, u3, u4)
