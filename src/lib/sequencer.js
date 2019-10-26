@@ -39,10 +39,10 @@ const poly = new Tone.PolySynth().toMaster();
 // Aqui tendrias que quitar la nota
 const trigger = (n, note, time) => {
   // if (n !== 8 && n !== 16) {
-    synth.triggerAttackRelease('G5', "10hz", time);
-    synth2.triggerAttackRelease('E4', "5hz", time);
-    synth3.triggerAttackRelease('A4', "5hz", time);
-    synth4.triggerAttackRelease('A8', "5hz", time);
+    // synth.triggerAttackRelease('G5', "10hz", time);
+    // synth2.triggerAttackRelease('E4', "5hz", time);
+    // synth3.triggerAttackRelease('A4', "5hz", time);
+    // synth4.triggerAttackRelease('A8', "5hz", time);
 
 
 
@@ -62,7 +62,8 @@ const synthPart = new Tone.Sequence(
 synthPart.loop = true;
 
 sequencer.subscribe(({ time, step }) => {
-  trigger(step, notes[step - 1], time);
+  console.log(time, step)
+  // trigger(step, notes[step - 1], time);
 });
 
 starter.subscribe(value => {

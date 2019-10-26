@@ -1,19 +1,50 @@
 <script>
   import Tone from 'tone'
+  import Select from './Select.svelte'
   import { afterUpdate } from 'svelte'
   import { get } from 'svelte/store'
-  import { togglePadMenu, sounds, loadSound } from '../lib/state'
-  import { synthLib } from '../lib/state'
-  import { fade, fly } from 'svelte/transition'
+  import {
+    togglePadMenu,
+    sounds,
+    loadSound,
+    clearSound,
+    scaleLib,
+    synthLib,
+    toneLib,
+  } from '../lib/state'
+  import { fade, fly, slide } from 'svelte/transition'
   export let padID
+  export let synthDropdown = false
+  export let toneDropdown = false
   let trans = false
-
-  afterUpdate(() => {
-    console.log('update')
+  let selectedSynth = null
+  let selectedTone = null
+  let selectedScale = null
+  let data = {}
+  sounds.subscribe(value => {
+    if (value[padID]) {
+      selectedSynth = value[padID].synth
+      selectedTone = value[padID].tone
+      selectedScale = value[padID].scale
+    }
   })
 
-  const handleValueChange = (e) => {
-    loadSound(padID, e.target.value)
+  const handleSelection = (type, value) => {
+    switch (type) {
+      case 'synth':
+        loadSound(padID, { synth: value })
+        break
+      case 'tone':
+        loadSound(padID, { tone: value })
+        break
+      case 'scale':
+        loadSound(padID, { scale: value })
+        break
+    }
+  }
+
+  const setSound = () => {
+    loadSound(padID, data)
   }
 
   const closeMenu = () => {
@@ -30,6 +61,9 @@
 
 <style>
   .wrapper {
+    display: grid;
+    height: 100%;
+    grid-template-rows: 0.2fr 1fr;
     box-sizing: border-box;
     border-radius: 5px;
     padding: 20px;
@@ -52,7 +86,18 @@
     border: 1px solid var(--primary);
     border-radius: var(--px0);
     padding: var(--px1);
-    overflow: hidden;
+    overflow-y: scroll;
+  }
+  ::-webkit-scrollbar-track {
+    background-color: #f5f5f5;
+  }
+  ::-webkit-scrollbar {
+    width: 0px;
+    background-color: var(--background);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--background);
   }
   .header {
     overflow: hidden;
@@ -79,6 +124,10 @@
     color: var(--primary);
     font-family: var(--font);
   }
+
+  ul {
+    list-style: none;
+  }
 </style>
 
 {#if !trans}
@@ -91,12 +140,24 @@
       <div class="arrow forward" on:click={nextMenu} />
     </div>
     <div class="content" in:fly={{ y: 1000, duration: 500 }} out:fade>
-      <select value={get(sounds)[padID] ? get(sounds)[padID] : 0} on:change={handleValueChange}>  
-        <option value="0">NONE</option>
-        {#each Object.keys(synthLib) as synth}
-          <option value={synth}>{synthLib[synth].label}</option>
-        {/each}
-      </select>
+      <Select
+        callback={handleSelection}
+        placeholder="Choose your engine"
+        items={Object.keys(synthLib)}
+        type="synth"
+        selected={selectedSynth.voices[0]} />
+      <Select
+        callback={handleSelection}
+        placeholder="Choose your tone"
+        items={toneLib}
+        type="tone"
+        selected={selectedTone} />
+      <Select
+        callback={handleSelection}
+        placeholder="Choose your scale"
+        items={Object.keys(scaleLib)}
+        type="scale"
+        selected={selectedScale} />
     </div>
   </div>
 {/if}

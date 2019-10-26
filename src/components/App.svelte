@@ -1,6 +1,6 @@
 <script>
   import { sequencer } from '../lib/sequencer'
-  import { padMenu, initSounds } from '../lib/state'
+  import { padMenu, initPads } from '../lib/state'
   import Pads from './Pads.svelte'
   import PadMenu from './PadMenu.svelte'
   import Tools from './Tools.svelte'
@@ -10,7 +10,7 @@
   export let pads = []
   export let menuToggler = false
   export let padID = null
-  initSounds()
+  initPads()
   let note = null
   for (let i = 1; i <= 16; i++) {
     pads.push({ id: i, active: false, note: '' })
@@ -44,7 +44,7 @@
     height: 100vh;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 0.5fr;
+    grid-template-rows: 1fr 1fr;
     overflow: hidden;
     background: var(--background);
   }
@@ -66,7 +66,7 @@
   </div>
 {:else}
   <div class="pads-container" transition:fly={{ y: 1000, duration: 1000 }}>
-    <Pads {pads} />
     <SoftMenu />
+    <Pads {pads} />
   </div>
 {/if}
