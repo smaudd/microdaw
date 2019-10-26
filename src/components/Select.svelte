@@ -19,6 +19,11 @@
     border-radius: var(--px0);
   }
 
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
   .selected {
     background: var(--secondary);
     padding: var(--px1);
@@ -36,9 +41,11 @@
 
 <div on:click={toggleDropDown} transition:fade class="select">
   <div class="selected">{selected}</div>
-  {#if dropdown}
-    {#each items as item}
-      <li on:click={() => callback(type, item)} transition:slide>{item}</li>
-    {/each}
-  {/if}
+  <div class="options-grid">
+    {#if dropdown}
+      {#each items as item}
+        <li on:click={() => callback(type, item)} transition:slide>{item}</li>
+      {/each}
+    {/if}
+  </div>
 </div>

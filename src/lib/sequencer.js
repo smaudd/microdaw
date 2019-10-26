@@ -89,7 +89,6 @@ synthPart.loop = true;
 sequencer.subscribe(({ time, step }) => {
   if (step !== 0) {
     const toPlay = get(patterns)[get(selectedPattern)][step - 1]
-    console.log(toPlay)
     if (toPlay.length > 0) {
       trigger(toPlay)
     }

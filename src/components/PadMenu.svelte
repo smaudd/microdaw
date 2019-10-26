@@ -125,9 +125,6 @@
     font-family: var(--font);
   }
 
-  ul {
-    list-style: none;
-  }
 </style>
 
 {#if !trans}

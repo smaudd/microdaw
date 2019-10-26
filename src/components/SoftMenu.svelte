@@ -1,5 +1,5 @@
 <script>
-  import Sound from './Sound.svelte'
+  import { onDestroy } from 'svelte'
   import { afterUpdate } from 'svelte'
   import {
     togglePadMenu,
@@ -21,15 +21,16 @@
   const modeHandler = () => {
     mode.update(value => (value === 'sound' ? 'pattern' : 'sound'))
   }
-  selectedPattern.subscribe(value => (patternLabel = value))
-  selectedSound.subscribe(value => (soundLabel = value))
-  mode.subscribe(value => {
+  const u1 = selectedPattern.subscribe(value => (patternLabel = value))
+  const u2 = selectedSound.subscribe(value => (soundLabel = value))
+  const u3 = mode.subscribe(value => {
     if (value === 'sound') {
       soundLabel = get(selectedSound)
       return
     }
     patternLabel = get(selectedPattern)
   })
+  onDestroy(u1, u2)
 </script>
 
 <style>
@@ -37,7 +38,6 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-gap: var(--px0);
-    margin-bottom: var(--px1);
   }
 
   .btn {
@@ -65,10 +65,10 @@
 <div class="soft-menu">
   <!-- <div class="box"> -->
   <div class="box">
-    <div class="btn" on:click={() => onChange.update(n => 'pattern')}>
+    <div class="btn" on:click={() => onChange.update(n => n === 'pattern' ? false : 'pattern')}>
       P{patternLabel}
     </div>
-    <div class="btn" on:click={() => onChange.update(n => 'sound')}>
+    <div class="btn" on:click={() => onChange.update(n => n === 'sound' ? false : 'sound')}>
       S{soundLabel}
     </div>
   </div>
@@ -76,11 +76,10 @@
   <!-- </div> -->
   <div
     class="btn"
-    on:click={() => togglePadMenu(true, $selectedSound)}>
+    on:click={() => {
+      togglePadMenu(true, $selectedSound)
+    }}>
     settings
   </div>
-  <!-- {#if $sounds[sound]}
-      <Sound sound={$sounds[sound]} />
-    {/if} -->
   <button class="btn" on:click={playPause}>PLAY</button>
 </div>

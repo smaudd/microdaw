@@ -32,7 +32,7 @@
     "tone": "^13.8.25"
   },
   "scripts": {
-    "mobile": "npm run build && npx cap sync android && npx cap open android",
+    "mobile": "npm run build && npx cap copy android && npx cap update android npx cap sync android && npx cap open android",
     "build": "rollup -c",
     "autobuild": "rollup -c -w",
     "dev": "run-p start:dev autobuild",

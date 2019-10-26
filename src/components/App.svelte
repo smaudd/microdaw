@@ -1,10 +1,10 @@
 <script>
   import { sequencer } from '../lib/sequencer'
-  import { padMenu, initPads } from '../lib/state'
+  import { padMenu, initPads, sounds, selectedSound } from '../lib/state'
   import { initSteps, initPatterns } from '../lib/sequencer'
   import Pads from './Pads.svelte'
   import PadMenu from './PadMenu.svelte'
-  import Tools from './Tools.svelte'
+  import Sound from './Sound.svelte'
   import SoftMenu from './SoftMenu.svelte'
   import { fade, fly } from 'svelte/transition'
   import Tone from 'tone'
@@ -18,18 +18,12 @@
   for (let i = 1; i <= 16; i++) {
     pads.push({ id: i, active: false, note: '' })
   }
-  // sequencer.subscribe(n => {
-  //   if (n.step !== 0) {
-  //     pads.forEach(pad => (pad.active = false))
-  //     pads[n.step - 1].active = true
-  //     pads[n.step - 1].note = n.note
-  //   }
-  // })
   padMenu.subscribe(value => {
     menuToggler = value.state
     padID = value.padID
   })
   // TODO manage unsubscription
+  const sound = $sounds[$selectedSound]
 </script>
 
 <style>
@@ -43,16 +37,26 @@
     --px1: 10px;
     --px2: 20px;
   }
-  .pads-container {
+  :global(body) {
     height: 100vh;
+    padding: var(--px0);
+  }
+  .container {
+    height: 100%;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 1fr;
+  }
+  .pads-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 0.5fr 1fr 1fr;
     overflow: hidden;
     background: var(--background);
+    grid-gap: var(--px0);
   }
   .menu-container {
-    height: 100vh;
+    height: 100%;
     position: absolute;
     overflow: hidden;
     top: 0;
@@ -63,13 +67,16 @@
   }
 </style>
 
-{#if menuToggler}
-  <div class="menu-container" transition:fly={{ y: 1000, duration: 1000 }}>
-    <PadMenu {padID} />
-  </div>
-{:else}
-  <div class="pads-container" transition:fly={{ y: 1000, duration: 1000 }}>
-    <SoftMenu />
-    <Pads {pads} />
-  </div>
-{/if}
+<div class="container">
+  {#if menuToggler}
+    <div class="menu-container" transition:fly={{ y: 1000, duration: 1000 }}>
+      <PadMenu {padID} />
+    </div>
+  {:else}
+    <div class="pads-container" transition:fly={{ y: 1000, duration: 1000 }}>
+      <SoftMenu />
+      <Sound sound={sound.synth} />
+      <Pads {pads} />
+    </div>
+  {/if}
+</div>

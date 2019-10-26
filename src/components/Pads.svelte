@@ -21,6 +21,9 @@
   let trans = false
   const padMapping = () => {
     pads.forEach((pad, index) => {
+      current = get(sounds)[get(selectedSound)]
+      scale = generateScale(current.tone, current.scale)
+      padMap = scaleToPadMap(scale, current.octave)
       pads[index].note = padMap[index]
       const soundStep = get(patterns)[get(selectedPattern)][index].filter(
         step => step.sound === get(selectedSound)
@@ -33,18 +36,11 @@
     })
   }
   const u1 = selectedSound.subscribe(value => {
-    current = get(sounds)[value]
-    scale = generateScale(current.tone, current.scale)
-    padMap = scaleToPadMap(scale, current.octave)
+    padMapping()
     lastNotePlayed.update(() => padMap[0])
-    padMapping()
   })
-  const u2 = selectedPattern.subscribe(value => {
-    padMapping()
-  })
-  const u3 = patterns.subscribe(value => {
-    padMapping()
-  })
+  const u2 = selectedPattern.subscribe(value => padMapping())
+  const u3 = patterns.subscribe(value => padMapping())
   const u4 = sequencer.subscribe(value => {
     if (value.step > 0) {
       pads[value.step - 1].active = true
@@ -52,10 +48,10 @@
         pads[value.step - 1].active = false
       }, 200)
     }
-    padMapping()
   })
+  const u5 = sounds.subscribe(value => padMapping())
   // Clean subscription
-  onDestroy(u1, u2, u3, u4)
+  onDestroy(u1, u2, u3, u4, u5)
   let queue = []
   export const playCallback = note => {
     queue.push(note)

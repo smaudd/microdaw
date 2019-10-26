@@ -100,7 +100,6 @@ const loadSound = (pad, { tone, scale, synth }) => {
         if (synth) {
             n[pad].synth = synthLib[synth]
         }
-        console.log(n)
         return n
     })
 }

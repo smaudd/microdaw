@@ -2,6 +2,7 @@
   import Tone from 'tone'
   import { afterUpdate } from 'svelte'
   import { get } from 'svelte/store'
+  import { Plugins, HapticsImpactStyle } from '@capacitor/core'
   import {
     changeSelectedSound,
     changeSelectedPattern,
@@ -14,6 +15,7 @@
   import { setStep } from '../lib/sequencer'
   import { fade, slide, fly } from 'svelte/transition'
   import { sounds } from '../lib/state'
+  const { Haptics, Device } = Plugins
   export let padID
   export let active
   export let note
@@ -23,7 +25,8 @@
   let blink = false
   let trans = false
   let lastNoteCache
-  let timeout
+  let longPressHalfSecond
+  let longPressSecond
   onChange.subscribe(value => {
     if (value) {
       blink = value
@@ -32,7 +35,14 @@
     blink = false
   })
 
-  const attack = e => {
+  const hapticsImpact = async style => {
+    const info = await Device.getInfo()
+    if (info.platform === 'ios' || info.platform === 'android') {
+      Haptics.vibrate()
+    }
+  }
+
+  const attack = async e => {
     const m = get(mode)
     // Change pattern/sound
     if (blink) {
@@ -58,17 +68,24 @@
         break
       case 'pattern':
         // Long press to change lastNotePlayed
-        const copy = e.target.childNodes[0].lastChild.innerHTML.slice(1, 3)
-        timeout = setTimeout(() => {
+        let copy = e.target.childNodes[0].lastChild.innerHTML.slice(1, 3)
+        longPressHalfSecond = setTimeout(() => {
+          hapticsImpact(HapticsImpactStyle.Light)
           if (copy.includes('N')) {
             return
           }
           lastNotePlayed.update(n => {
-            console.log(step)
             setStep(padID, copy)
             return copy
           })
         }, 500)
+        longPressSecond = setTimeout(() => {
+          hapticsImpact(HapticsImpactStyle.Heavy)
+          lastNotePlayed.update(n => {
+            setStep(padID, note)
+            return note
+          })
+        }, 1000)
         // Write if void
         if (step === 'N') {
           setStep(padID, get(lastNotePlayed))
@@ -83,7 +100,8 @@
   }
 
   const release = e => {
-    clearTimeout(timeout)
+    clearTimeout(longPressHalfSecond)
+    clearTimeout(longPressSecond)
     active = false
   }
 </script>
@@ -100,7 +118,7 @@
   }
 
   .active {
-    animation: fade 0.5s forwards;
+    animation: fade 0.1s forwards;
   }
 
   .blink {
@@ -155,6 +173,8 @@
   id={padID}
   on:touchstart={attack}
   on:touchend={release}
+  on:mousedown={attack}
+  on:mouseup={release}
   on:mouseleave={release}
   class={`pad ${step !== 'N' ? 'activeStep' : null}`}
   class:active
