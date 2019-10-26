@@ -76,10 +76,7 @@
   <!-- </div> -->
   <div
     class="btn"
-    on:click={() => {
-      playPause(false)
-      togglePadMenu(true, $selectedSound)
-    }}>
+    on:click={() => togglePadMenu(true, $selectedSound)}>
     settings
   </div>
   <!-- {#if $sounds[sound]}
