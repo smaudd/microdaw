@@ -58,19 +58,28 @@
   .box {
     display: grid;
     grid-template-rows: 1fr 1fr;
-    grid-gap: var(--px0)
+    grid-gap: var(--px0);
   }
 </style>
 
 <div class="soft-menu">
   <!-- <div class="box"> -->
   <div class="box">
-    <div class="btn" on:click={() => onChange.update(n => 'pattern')}>P{patternLabel}</div>
-    <div class="btn" on:click={() => onChange.update(n => 'sound')}>S{soundLabel}</div>
+    <div class="btn" on:click={() => onChange.update(n => 'pattern')}>
+      P{patternLabel}
+    </div>
+    <div class="btn" on:click={() => onChange.update(n => 'sound')}>
+      S{soundLabel}
+    </div>
   </div>
   <div class="btn" on:click={modeHandler}>{$mode}</div>
   <!-- </div> -->
-  <div class="btn" on:click={() => togglePadMenu(true, $selectedSound)}>
+  <div
+    class="btn"
+    on:click={() => {
+      playPause(false)
+      togglePadMenu(true, $selectedSound)
+    }}>
     settings
   </div>
   <!-- {#if $sounds[sound]}
