@@ -59,12 +59,7 @@
   let queue = []
   export const playCallback = note => {
     queue.push(note)
-    setTimeout(() => {
-      play(current, queue)
-      setTimeout(() => {
-        queue = []
-      })
-    })
+    play(current, queue)
   }
 
   export const stopCallback = note => {
