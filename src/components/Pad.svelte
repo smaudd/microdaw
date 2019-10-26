@@ -114,6 +114,7 @@
     pointer-events: none;
     user-select: none;
     margin: 0;
+    text-align: center;
   }
 
   .step {
@@ -125,6 +126,7 @@
 
   .activeStep {
     background-color: var(--primary-light);
+    color: var(--secondary);
     animation: 0.5s forwards;
   }
 
@@ -151,8 +153,8 @@
 
 <div
   id={padID}
-  on:mousedown={attack}
-  on:mouseup={release}
+  on:touchstart={attack}
+  on:touchend={release}
   on:mouseleave={release}
   class={`pad ${step !== 'N' ? 'activeStep' : null}`}
   class:active
