@@ -1,5 +1,4 @@
 import Tone from 'tone'
-
 const play = (tone, note) => {
     console.log(note)
     if (note.length > 0) {

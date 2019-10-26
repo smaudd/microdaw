@@ -47,11 +47,9 @@ const generateScale = (tone, scale) => {
 }
 
 const scaleToPadMap = (scale, octave) => {
+    // Esta funcion es mejorable
     let shouldContinueLow = false
     let shouldContinueHigh = false
-    for (let i = 0; i <= 2; i++) {
-        
-    }
     const low = scale.map((note, index) => {
         if (note === 'C' || note === 'C#' && scale[index - 1] === 'B' || shouldContinueLow) {
             shouldContinueLow = true

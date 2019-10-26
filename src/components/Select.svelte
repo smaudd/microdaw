@@ -7,7 +7,6 @@
   export let type
   export let placeholder
   let dropdown = false
-  console.log(selected)
   const toggleDropDown = () => {
     dropdown = !dropdown
   }

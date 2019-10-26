@@ -1,28 +1,60 @@
-import Tone from "tone";
-import { writable } from "svelte/store";
+import Tone from 'tone';
+import { writable, get } from 'svelte/store';
+import { selectedSound, selectedPattern, sounds } from './state'
 
 // Esto lo tiene que cargar el loader para que sea reproducible
-const notes = [
-  "C4",
-  "D4",
-  "E4",
-  "F#4",
-  "G#4",
-  "A4",
-  "B4",
-  "C4",
-  "C5",
-  "D5",
-  "E5",
-  "F#5",
-  "G#5",
-  "A5",
-  "B5",
-  "C5"
-];
+const mockNotes = [];
 
-const sequencer = writable({ time: 0, step: 0, note: notes[0] });
+for (let i = 0; i <= 16; i++) {
+  mockNotes.push('C');
+}
+
+const sequencer = writable({ time: 0, step: 0 });
+const steps = writable({})
+const patterns = writable({})
 const starter = writable(false);
+
+const initSteps = () => {
+  steps.update(n => {
+    // Buen sitio para buscar en memoria
+    for (let i = 1; i <= 16; i++) {
+      n[i] = []
+    }
+    return n
+  })
+}
+
+const initPatterns = () => {
+  patterns.update(n => {
+    // Buen sitio para buscar en memoria
+    for (let i = 1; i <= 16; i++) {
+      // Crea el pattern
+      n[i] = []
+      for (let j = 0; j < 16; j++) {
+        // Crea el step
+        n[i][j] = []
+      }
+    }
+    return n
+  })
+}
+
+const setStep = (step, note) => {
+  patterns.update(n => {
+    const sound = get(sounds)[get(selectedSound)]
+    const pattern = get(selectedPattern)
+    const indexedStep = step === 0 ? 0 : step - 1
+    if (!note) {
+      const pop = n[pattern][indexedStep].filter(v => v.sound !== get(selectedSound))
+      n[pattern][indexedStep] = pop
+      return n
+    }
+    if (n[pattern][indexedStep].length < 4) {
+      n[pattern][indexedStep].push({ note, synth: sound.synth, sound: get(selectedSound) })
+      return n
+    }
+  })
+}
 
 const playPause = () => {
   starter.update(n => !n);
@@ -36,33 +68,32 @@ synth4.oscillator.type = 'triangle';
 const poly = new Tone.PolySynth().toMaster();
 
 
-// Aqui tendrias que quitar la nota
-const trigger = (n, note, time) => {
-  // if (n !== 8 && n !== 16) {
-    // synth.triggerAttackRelease('G5', "10hz", time);
-    // synth2.triggerAttackRelease('E4', "5hz", time);
-    // synth3.triggerAttackRelease('A4', "5hz", time);
-    // synth4.triggerAttackRelease('A8', "5hz", time);
-
-
-
-  // }
+const trigger = (toPlay) => {
+  toPlay.forEach(n => {
+    n.synth.triggerAttackRelease(n.note, '2n').toMaster()
+  })
 };
-
+Tone.Transport.bpm.value = 240;
 const synthPart = new Tone.Sequence(
   function(time, note) {
     sequencer.update(n => {
       return { step: n.step === 16 ? 1 : n.step + 1, time, note };
     });
   },
-  notes,
-  "4n"
+  mockNotes,
+  "8n"
 ).start(0);
 
 synthPart.loop = true;
 
 sequencer.subscribe(({ time, step }) => {
-  console.log(time, step)
+  if (step !== 0) {
+    const toPlay = get(patterns)[get(selectedPattern)][step - 1]
+    console.log(toPlay)
+    if (toPlay.length > 0) {
+      trigger(toPlay)
+    }
+  }
   // trigger(step, notes[step - 1], time);
 });
 
@@ -74,4 +105,4 @@ starter.subscribe(value => {
   return Tone.Transport.stop();
 });
 
-export { sequencer, playPause };
+export { sequencer, playPause, initSteps, initPatterns, setStep, patterns };

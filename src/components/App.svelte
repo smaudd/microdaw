@@ -1,6 +1,7 @@
 <script>
   import { sequencer } from '../lib/sequencer'
   import { padMenu, initPads } from '../lib/state'
+  import { initSteps, initPatterns } from '../lib/sequencer'
   import Pads from './Pads.svelte'
   import PadMenu from './PadMenu.svelte'
   import Tools from './Tools.svelte'
@@ -11,17 +12,19 @@
   export let menuToggler = false
   export let padID = null
   initPads()
+  initPatterns()
+  initSteps()
   let note = null
   for (let i = 1; i <= 16; i++) {
     pads.push({ id: i, active: false, note: '' })
   }
-  sequencer.subscribe(n => {
-    if (n.step !== 0) {
-      pads.forEach(pad => (pad.active = false))
-      pads[n.step - 1].active = true
-      pads[n.step - 1].note = n.note
-    }
-  })
+  // sequencer.subscribe(n => {
+  //   if (n.step !== 0) {
+  //     pads.forEach(pad => (pad.active = false))
+  //     pads[n.step - 1].active = true
+  //     pads[n.step - 1].note = n.note
+  //   }
+  // })
   padMenu.subscribe(value => {
     menuToggler = value.state
     padID = value.padID
