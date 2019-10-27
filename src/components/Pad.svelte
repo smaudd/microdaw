@@ -173,8 +173,6 @@
   id={padID}
   on:touchstart={attack}
   on:touchend={release}
-  on:mousedown={attack}
-  on:mouseup={release}
   on:mouseleave={release}
   class={`pad ${step !== 'N' ? 'activeStep' : null}`}
   class:active
