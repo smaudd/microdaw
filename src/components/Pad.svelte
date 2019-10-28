@@ -27,13 +27,7 @@
   let lastNoteCache
   let longPressHalfSecond
   let longPressSecond
-  let info
-  let mounted = false
 
-  onMount(async () => {
-    info = await Device.getInfo()
-    mounted = true
-  })
   onChange.subscribe(value => {
     if (value) {
       blink = value
@@ -175,8 +169,6 @@
   }
 </style>
 
-{#if mounted}
-{#if info.platform === 'android'}
 <div
   id={padID}
   on:touchstart={attack}
@@ -198,27 +190,4 @@
     </div>
   {/if}
 </div>
-{:else}
-<div
-  id={padID}
-  on:mousedown={attack}
-  on:mouseup={release}
-  on:mouseleave={release}
-  class={`pad ${step !== 'N' ? 'activeStep' : null}`}
-  class:active
-  class:blink>
-  {#if $mode === 'pattern'}
-    <div class="box" transition:fly={{ x: 100, duration: 200, opacity: 0 }}>
-      <p class="note">{note}</p>
-      <p class="step">[{step}]</p>
-    </div>
-  {:else}
-    <div
-      class="box-index"
-      transition:fly={{ x: -100, duration: 200, opacity: 0 }}>
-      <p class="note">{note}</p>
-    </div>
-  {/if}
-</div>
-{/if}
-{/if}
+
