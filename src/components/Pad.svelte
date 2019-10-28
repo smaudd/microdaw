@@ -1,6 +1,6 @@
 <script>
   import Tone from 'tone'
-  import { afterUpdate } from 'svelte'
+  import { afterUpdate, onMount } from 'svelte'
   import { get } from 'svelte/store'
   import { Plugins, HapticsImpactStyle } from '@capacitor/core'
   import {
@@ -27,6 +27,11 @@
   let lastNoteCache
   let longPressHalfSecond
   let longPressSecond
+  let info 
+
+  onMount(async () => {
+    info = await Device.getInfo()
+  })
   onChange.subscribe(value => {
     if (value) {
       blink = value
@@ -36,7 +41,6 @@
   })
 
   const hapticsImpact = async style => {
-    const info = await Device.getInfo()
     if (info.platform === 'ios' || info.platform === 'android') {
       Haptics.vibrate()
     }
@@ -169,6 +173,29 @@
   }
 </style>
 
+{#if info.platform === 'android'}
+<div
+  id={padID}
+  on:touchstart={attack}
+  on:touchend={release}
+  on:mouseleave={release}
+  class={`pad ${step !== 'N' ? 'activeStep' : null}`}
+  class:active
+  class:blink>
+  {#if $mode === 'pattern'}
+    <div class="box" transition:fly={{ x: 100, duration: 200, opacity: 0 }}>
+      <p class="note">{note}</p>
+      <p class="step">[{step}]</p>
+    </div>
+  {:else}
+    <div
+      class="box-index"
+      transition:fly={{ x: -100, duration: 200, opacity: 0 }}>
+      <p class="note">{note}</p>
+    </div>
+  {/if}
+</div>
+{:else}
 <div
   id={padID}
   on:mousedown={attack}
@@ -190,3 +217,4 @@
     </div>
   {/if}
 </div>
+{/if}
