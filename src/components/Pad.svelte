@@ -27,10 +27,12 @@
   let lastNoteCache
   let longPressHalfSecond
   let longPressSecond
-  let info 
+  let info
+  let mounted = false
 
   onMount(async () => {
     info = await Device.getInfo()
+    mounted = true
   })
   onChange.subscribe(value => {
     if (value) {
@@ -173,6 +175,7 @@
   }
 </style>
 
+{#if mounted}
 {#if info.platform === 'android'}
 <div
   id={padID}
@@ -217,4 +220,5 @@
     </div>
   {/if}
 </div>
+{/if}
 {/if}
