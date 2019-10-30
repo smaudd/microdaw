@@ -3,9 +3,9 @@
   import { afterUpdate } from 'svelte'
   import {
     togglePadMenu,
+    toggleGlobalMenu,
     selectedSound,
     selectedPattern,
-    sounds,
     mode,
     changeMode,
     onChange,
@@ -14,23 +14,9 @@
   import { fade } from 'svelte/transition'
   import { sequencer, playPause } from '../lib/sequencer'
 
-  const sound = $selectedSound
-  const engines = $sounds
-  let patternLabel = get(selectedPattern)
-  let soundLabel = get(selectedSound)
   const modeHandler = () => {
     mode.update(value => (value === 'sound' ? 'pattern' : 'sound'))
   }
-  const u1 = selectedPattern.subscribe(value => (patternLabel = value))
-  const u2 = selectedSound.subscribe(value => (soundLabel = value))
-  const u3 = mode.subscribe(value => {
-    if (value === 'sound') {
-      soundLabel = get(selectedSound)
-      return
-    }
-    patternLabel = get(selectedPattern)
-  })
-  onDestroy(u1, u2)
 </script>
 
 <style>
@@ -63,23 +49,34 @@
 </style>
 
 <div class="soft-menu">
-  <!-- <div class="box"> -->
   <div class="box">
-    <div class="btn" on:click={() => onChange.update(n => n === 'pattern' ? false : 'pattern')}>
-      P{patternLabel}
+    <div
+      class="btn"
+      on:click={() => onChange.update(n =>
+          n === 'pattern' ? false : 'pattern'
+        )}>
+      P{$selectedPattern}
     </div>
-    <div class="btn" on:click={() => onChange.update(n => n === 'sound' ? false : 'sound')}>
-      S{soundLabel}
+    <div
+      class="btn"
+      on:click={() => onChange.update(n => (n === 'sound' ? false : 'sound'))}>
+      S{$selectedSound}
+    </div>
+  </div>
+  <div class="box">
+    <div
+      class="btn"
+      on:click={() => toggleGlobalMenu()}>
+      global
+    </div>
+    <div
+      class="btn"
+      on:click={() => {
+        togglePadMenu(true, get(selectedPattern))
+      }}>
+      settings
     </div>
   </div>
   <div class="btn" on:click={modeHandler}>{$mode}</div>
-  <!-- </div> -->
-  <div
-    class="btn"
-    on:click={() => {
-      togglePadMenu(true, $selectedSound)
-    }}>
-    settings
-  </div>
-  <button class="btn" on:click={playPause}>PLAY</button>
+  <div class="btn" on:click={playPause}>play</div>
 </div>

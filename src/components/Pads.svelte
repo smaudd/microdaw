@@ -3,7 +3,6 @@
   import { get } from 'svelte/store'
   import { onDestroy } from 'svelte'
   import {
-    changeSelectedSound,
     selectedSound,
     selectedPattern,
     generateScale,

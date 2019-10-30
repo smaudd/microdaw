@@ -4,8 +4,7 @@
   import { get } from 'svelte/store'
   import { Plugins, HapticsImpactStyle } from '@capacitor/core'
   import {
-    changeSelectedSound,
-    changeSelectedPattern,
+    selectedPattern,
     selectedSound,
     mode,
     onChange,
@@ -23,10 +22,10 @@
   export let stop
   export let step
   let blink = false
-  let trans = false
   let lastNoteCache
   let longPressHalfSecond
   let longPressSecond
+  let info
 
   onChange.subscribe(value => {
     if (value) {
@@ -37,69 +36,69 @@
   })
 
   const hapticsImpact = async style => {
+    info = await Device.getInfo()
     if (info.platform === 'ios' || info.platform === 'android') {
       Haptics.vibrate()
     }
   }
 
+  const longPress = patternNote => {
+    longPressHalfSecond = setTimeout(() => {
+      hapticsImpact(HapticsImpactStyle.Light)
+      if (patternNote.includes('N')) {
+        return
+      }
+      setStep(padID, patternNote)
+      lastNotePlayed.update(n => patternNote)
+    }, 500)
+    longPressSecond = setTimeout(() => {
+      hapticsImpact(HapticsImpactStyle.Heavy)
+      setStep(padID, note)
+      lastNotePlayed.update(n => note)
+    }, 1000)
+  }
+
+  const changeSelected = (val, id) => {
+    switch (val) {
+      case 'sound':
+        selectedSound.update(() => id)
+        break
+      case 'pattern':
+        selectedPattern.update(() => id)
+        break
+    }
+    onChange.update(() => false)
+  }
+
   const attack = async e => {
-    const m = get(mode)
     // Change pattern/sound
     if (blink) {
-      switch (blink) {
-        case 'sound':
-          changeSelectedSound(parseInt(e.target.getAttribute('id')))
-          break
-        case 'pattern':
-          changeSelectedPattern(parseInt(e.target.getAttribute('id')))
-          break
-        default:
-          break
-      }
-      onChange.update(() => false)
-      return
+      const id = parseInt(e.target.getAttribute('id'))
+      return changeSelected(blink, id)
     }
-
-    switch (m) {
+    // Play
+    switch (get(mode)) {
       case 'sound':
         lastNotePlayed.update(() => note)
         play(note)
         active = true
         break
       case 'pattern':
-        // Long press to change lastNotePlayed
-        let copy = e.target.childNodes[0].lastChild.innerHTML.slice(1, 3)
-        longPressHalfSecond = setTimeout(() => {
-          hapticsImpact(HapticsImpactStyle.Light)
-          if (copy.includes('N')) {
-            return
-          }
-          lastNotePlayed.update(n => {
-            setStep(padID, copy)
-            return copy
-          })
-        }, 500)
-        longPressSecond = setTimeout(() => {
-          hapticsImpact(HapticsImpactStyle.Heavy)
-          lastNotePlayed.update(n => {
-            setStep(padID, note)
-            return note
-          })
-        }, 1000)
-        // Write if void
+        const patternNote = e.target.childNodes[0].lastChild.innerHTML.slice(
+          1,
+          3
+        )
+        longPress(patternNote)
         if (step === 'N') {
           setStep(padID, get(lastNotePlayed))
           break
         }
-        // erase
         setStep(padID, false)
-        break
-      default:
         break
     }
   }
 
-  const release = e => {
+  const release = () => {
     clearTimeout(longPressHalfSecond)
     clearTimeout(longPressSecond)
     active = false
@@ -115,6 +114,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    animation: 0.5s forwards;
   }
 
   .active {
@@ -129,6 +129,7 @@
   }
 
   .note {
+    color: var(--secondary);
     pointer-events: none;
     user-select: none;
     margin: 0;
@@ -145,7 +146,6 @@
   .activeStep {
     background-color: var(--primary-light);
     color: var(--secondary);
-    animation: 0.5s forwards;
   }
 
   .box,
@@ -160,10 +160,10 @@
 
   @keyframes fade {
     from {
-      background: transparent;
+      /* background: transparent; */
     }
     to {
-      background: var(--secondary);
+      background: var(--primary);
       opacity: 0.4;
     }
   }
@@ -190,4 +190,3 @@
     </div>
   {/if}
 </div>
-

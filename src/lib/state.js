@@ -8,7 +8,8 @@ const tones = writable({})
 const selectedSound = writable(1)
 const selectedPattern = writable(1)
 const sounds = writable({})
-const lastNotePlayed = writable(null) 
+const lastNotePlayed = writable(null)
+const globalMenu = writable(false)
 
 const synthLib = {
     'Synth': new Tone.PolySynth(4, Tone.Synth),
@@ -59,6 +60,7 @@ const scaleToPadMap = (scale, octave) => {
     })
     const high = scale.map((note, index) => {
         if (note === 'C' || note === 'C#' && scale[index - 1] === 'B' || shouldContinueHigh) {
+            // 420
             shouldContinueHigh = true
             return `${note}${octave + 2}`
         }
@@ -122,26 +124,19 @@ const changeMode = (val) => {
     mode.update(() => val)
 }
 
-const changeSelectedSound = (val) => {
-    selectedSound.update(() => val)
-}
-
-const changeSelectedPattern = (val) => {
-    selectedPattern.update(() => val)
-}
-
 const padMenu = writable(false)
 const togglePadMenu = (state, padID) => {
     padMenu.update(() => ({ state, padID }))
 }
 
+const toggleGlobalMenu = () => {
+    globalMenu.update(n => !n)
+}
 
 export { 
     changeMode,
     togglePadMenu,
     padMenu,
-    changeSelectedSound,
-    changeSelectedPattern,
     selectedSound,
     selectedPattern,
     generateScale,
@@ -157,5 +152,7 @@ export {
     clearSound,
     mode,
     onChange,
-    lastNotePlayed
+    lastNotePlayed,
+    globalMenu,
+    toggleGlobalMenu
 }

@@ -60,20 +60,12 @@ const playPause = () => {
   starter.update(n => !n);
 };
 
-const synth = new Tone.MembraneSynth().toMaster();
-const synth2 = new Tone.MonoSynth().toMaster();
-const synth3 = new Tone.Synth().toMaster();
-const synth4 = new Tone.Synth().toMaster();
-synth4.oscillator.type = 'triangle';
-const poly = new Tone.PolySynth().toMaster();
-
-
 const trigger = (toPlay) => {
   toPlay.forEach(n => {
     n.synth.triggerAttackRelease(n.note, '2n').toMaster()
   })
 };
-Tone.Transport.bpm.value = 240;
+// Tone.Transport.bpm.value = 240;
 const synthPart = new Tone.Sequence(
   function(time, note) {
     sequencer.update(n => {

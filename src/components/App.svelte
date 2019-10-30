@@ -1,13 +1,21 @@
 <script>
   import { sequencer } from '../lib/sequencer'
-  import { padMenu, initPads, sounds, selectedSound } from '../lib/state'
+  import Tone from 'tone'
+  import {
+    padMenu,
+    initPads,
+    sounds,
+    selectedSound,
+    globalMenu,
+    mode,
+  } from '../lib/state'
   import { initSteps, initPatterns } from '../lib/sequencer'
   import Pads from './Pads.svelte'
   import PadMenu from './PadMenu.svelte'
   import Sound from './Sound.svelte'
+  import GlobalMenu from './GlobalMenu.svelte'
   import SoftMenu from './SoftMenu.svelte'
   import { fade, fly } from 'svelte/transition'
-  import Tone from 'tone'
   export let pads = []
   export let menuToggler = false
   export let padID = null
@@ -16,7 +24,7 @@
   initSteps()
   let note = null
   for (let i = 1; i <= 16; i++) {
-    pads.push({ id: i, active: false, note: '' })
+    pads.push({ id: i, active: false })
   }
   padMenu.subscribe(value => {
     menuToggler = value.state
@@ -75,7 +83,17 @@
   {:else}
     <div class="pads-container" transition:fly={{ y: 1000, duration: 1000 }}>
       <SoftMenu />
-      <Sound sound={sound.synth} />
+      <div class="container">
+        {#if $globalMenu}
+          <div transition:fly={{ x: 1000, duration: 1000 }}>
+            <GlobalMenu />
+          </div>
+        {:else}
+          <div transition:fly={{ x: 1000, duration: 1000 }}>
+            <Sound sound={sound.synth} />
+          </div>
+        {/if}
+      </div>
       <Pads {pads} />
     </div>
   {/if}
