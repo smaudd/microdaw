@@ -2,21 +2,19 @@
   import { onDestroy } from 'svelte'
   import { afterUpdate } from 'svelte'
   import {
-    togglePadMenu,
-    toggleGlobalMenu,
     selectedSound,
     selectedPattern,
-    mode,
     changeMode,
     onChange,
   } from '../lib/state'
-  import { get } from 'svelte/store'
   import { fade } from 'svelte/transition'
   import { sequencer, playPause } from '../lib/sequencer'
-
-  const modeHandler = () => {
-    mode.update(value => (value === 'sound' ? 'pattern' : 'sound'))
-  }
+  export let togglePadMenu
+  export let mode
+  export let currentPattern
+  export let currentSound
+  export let willChangeCurrent
+  export let toggleGlobalMenu
 </script>
 
 <style>
@@ -50,33 +48,17 @@
 
 <div class="soft-menu">
   <div class="box">
-    <div
-      class="btn"
-      on:click={() => onChange.update(n =>
-          n === 'pattern' ? false : 'pattern'
-        )}>
-      P{$selectedPattern}
+    <div class="btn" on:click={() => willChangeCurrent.update('pattern')}>
+      P{currentPattern.value}
     </div>
-    <div
-      class="btn"
-      on:click={() => onChange.update(n => (n === 'sound' ? false : 'sound'))}>
-      S{$selectedSound}
+    <div class="btn" on:click={() => willChangeCurrent.update('sound')}>
+      S{currentSound.value}
     </div>
   </div>
   <div class="box">
-    <div
-      class="btn"
-      on:click={() => toggleGlobalMenu()}>
-      global
-    </div>
-    <div
-      class="btn"
-      on:click={() => {
-        togglePadMenu(true, get(selectedPattern))
-      }}>
-      settings
-    </div>
+    <div class="btn" on:click={() => toggleGlobalMenu()}>global</div>
+    <div class="btn" on:click={togglePadMenu}>settings</div>
   </div>
-  <div class="btn" on:click={modeHandler}>{$mode}</div>
+  <div class="btn" on:click={() => mode.update(mode.value)}>{mode.value}</div>
   <div class="btn" on:click={playPause}>play</div>
 </div>

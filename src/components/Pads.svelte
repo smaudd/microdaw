@@ -1,46 +1,43 @@
 <script>
   import Pad from './Pad.svelte'
-  import { get } from 'svelte/store'
-  import { onDestroy } from 'svelte'
   import {
-    selectedSound,
-    selectedPattern,
     generateScale,
     scaleToPadMap,
-    lastNotePlayed,
-    tones,
-    sounds,
   } from '../lib/state'
-  import { patterns, sequencer } from '../lib/sequencer'
+  import { afterUpdate, onDestroy } from 'svelte'
+  import { sequencer } from '../lib/sequencer'
   import { play, stop } from '../lib/audio'
   export let pads
+  export let willChangeCurrent
+  export let sound
+  export let sounds
+  export let pattern
+  export let patterns
+  export let mode
+  export let currentNote
+  export let currentSound
+  export let currentPattern
+
   let scale
   let padMap
-  let current
-  let trans = false
+
+  afterUpdate(() => {
+    padMapping()
+  })
   const padMapping = () => {
     pads.forEach((pad, index) => {
-      current = get(sounds)[get(selectedSound)]
-      scale = generateScale(current.tone, current.scale)
-      padMap = scaleToPadMap(scale, current.octave)
+      scale = generateScale(sound.tone, sound.scale)
+      padMap = scaleToPadMap(scale, sound.octave)
       pads[index].note = padMap[index]
-      const soundStep = get(patterns)[get(selectedPattern)][index].filter(
-        step => step.sound === get(selectedSound)
-      )
-      if (soundStep.length > 0) {
-        pads[index].step = soundStep[0].note
+      const step = pattern[index].filter(step => step.sound === currentSound.value)
+      if (step.length > 0) {
+        pads[index].step = step[0].note
         return
       }
       pads[index].step = 'N'
     })
   }
-  const u1 = selectedSound.subscribe(value => {
-    padMapping()
-    lastNotePlayed.update(() => padMap[0])
-  })
-  const u2 = selectedPattern.subscribe(value => padMapping())
-  const u3 = patterns.subscribe(value => padMapping())
-  const u4 = sequencer.subscribe(value => {
+  const unsubscribe = sequencer.subscribe(value => {
     if (value.step > 0) {
       pads[value.step - 1].active = true
       setTimeout(() => {
@@ -48,18 +45,20 @@
       }, 200)
     }
   })
-  const u5 = sounds.subscribe(value => padMapping())
-  // Clean subscription
-  onDestroy(u1, u2, u3, u4, u5)
+  onDestroy(unsubscribe)
   let queue = []
-  export const playCallback = note => {
+  const playCallback = (note, id) => {
+    const index = id === 0 ? 0 : id - 1
+    pads[index].active = true
     queue.push(note)
-    play(current, queue)
+    play(sound.synth, queue)
     queue = []
   }
 
-  export const stopCallback = note => {
-    stop(current)
+  const stopCallback = (note, id) => {
+    const index = id === 0 ? 0 : id - 1
+    pads[index].active = false
+    stop(sound.synth)
   }
 </script>
 
@@ -75,10 +74,14 @@
 <div class="pads-grid">
   {#each pads as pad}
     <Pad
-      padID={pad.id}
-      active={pad.active}
-      note={pad.note}
-      step={pad.step}
+      {willChangeCurrent}
+      {pad}
+      {patterns}
+      {mode}
+      {currentSound}
+      {currentPattern}
+      {currentNote}
+      {currentNote}
       play={playCallback}
       stop={stopCallback} />
   {/each}

@@ -4,59 +4,31 @@
   import { afterUpdate } from 'svelte'
   import { get } from 'svelte/store'
   import {
-    togglePadMenu,
-    sounds,
-    loadSound,
-    clearSound,
     scaleLib,
     synthLib,
     toneLib,
   } from '../lib/state'
   import { fade, fly, slide } from 'svelte/transition'
-  export let padID
-  export let synthDropdown = false
-  export let toneDropdown = false
+  export let sound
+  export let sounds
+  export let currentSound
+  export let togglePadMenu
   let trans = false
-  let selectedSynth = null
-  let selectedTone = null
-  let selectedScale = null
-  let data = {}
-  sounds.subscribe(value => {
-    if (value[padID]) {
-      selectedSynth = value[padID].synth
-      selectedTone = value[padID].tone
-      selectedScale = value[padID].scale
-    }
-  })
-
+  
   const handleSelection = (type, value) => {
     switch (type) {
       case 'synth':
-        loadSound(padID, { synth: value })
+        sounds.update(currentSound.value, { synth: value })
         break
       case 'tone':
-        loadSound(padID, { tone: value })
+        sounds.update(currentSound.value, { tone: value })
         break
       case 'scale':
-        loadSound(padID, { scale: value })
+        sounds.update(currentSound.value, { scale: value })
         break
     }
   }
 
-  const setSound = () => {
-    loadSound(padID, data)
-  }
-
-  const closeMenu = () => {
-    togglePadMenu(false, padID)
-  }
-  const nextMenu = () => {
-    trans = true
-    setTimeout(() => {
-      togglePadMenu(true, padID !== 16 ? padID + 1 : 1)
-      trans = false
-    }, 200)
-  }
 </script>
 
 <style>
@@ -130,11 +102,11 @@
 {#if !trans}
   <div class="wrapper">
     <div class="header" in:fly={{ y: -1000, duration: 500 }} out:fade>
-      <div class="arrow back" on:click={closeMenu} />
+      <div class="arrow back" on:click={togglePadMenu} />
       <div class="bubble">
-        <h1>{padID}</h1>
+        <h1>{currentSound.value}</h1>
       </div>
-      <div class="arrow forward" on:click={nextMenu} />
+      <!-- <div class="arrow forward" on:click={nextMenu} /> -->
     </div>
     <div class="content" in:fly={{ y: 1000, duration: 500 }} out:fade>
       <Select
@@ -142,19 +114,19 @@
         placeholder="Choose your engine"
         items={Object.keys(synthLib)}
         type="synth"
-        selected={selectedSynth.voices[0]} />
+        selected={sound.synth.voices[0]} />
       <Select
         callback={handleSelection}
         placeholder="Choose your tone"
         items={toneLib}
         type="tone"
-        selected={selectedTone} />
+        selected={sound.tone} />
       <Select
         callback={handleSelection}
         placeholder="Choose your scale"
         items={Object.keys(scaleLib)}
         type="scale"
-        selected={selectedScale} />
+        selected={sound.scale} />
     </div>
   </div>
 {/if}

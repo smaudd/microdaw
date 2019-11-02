@@ -1,42 +1,23 @@
 <script>
-  import Tone from 'tone'
-  import { afterUpdate, onMount } from 'svelte'
-  import { get } from 'svelte/store'
   import { Plugins, HapticsImpactStyle } from '@capacitor/core'
-  import {
-    selectedPattern,
-    selectedSound,
-    mode,
-    onChange,
-    changeMode,
-    lastNotePlayed,
-  } from '../lib/state'
   import { setStep } from '../lib/sequencer'
   import { fade, slide, fly } from 'svelte/transition'
-  import { sounds } from '../lib/state'
   const { Haptics, Device } = Plugins
-  export let padID
-  export let active
-  export let note
+  export let willChangeCurrent
+  export let pad
   export let play
   export let stop
-  export let step
-  let blink = false
-  let lastNoteCache
+  export let currentNote
+  export let currentSound
+  export let currentPattern
+  export let mode
+  export let patterns
+
   let longPressHalfSecond
   let longPressSecond
-  let info
-
-  onChange.subscribe(value => {
-    if (value) {
-      blink = value
-      return
-    }
-    blink = false
-  })
 
   const hapticsImpact = async style => {
-    info = await Device.getInfo()
+    const info = await Device.getInfo()
     if (info.platform === 'ios' || info.platform === 'android') {
       Haptics.vibrate()
     }
@@ -48,40 +29,40 @@
       if (patternNote.includes('N')) {
         return
       }
-      setStep(padID, patternNote)
-      lastNotePlayed.update(n => patternNote)
+      patterns.update(pad.id, patternNote)
+      currentNote.update(patternNote)
     }, 500)
     longPressSecond = setTimeout(() => {
       hapticsImpact(HapticsImpactStyle.Heavy)
-      setStep(padID, note)
-      lastNotePlayed.update(n => note)
+      patterns.update(pad.id, false)
+      currentNote.update(pad.note)
     }, 1000)
   }
 
-  const changeSelected = (val, id) => {
+  const changeCurrent = (val, id) => {
     switch (val) {
       case 'sound':
-        selectedSound.update(() => id)
+        currentSound.update(id)
         break
       case 'pattern':
-        selectedPattern.update(() => id)
+        currentPattern.update(id)
         break
     }
-    onChange.update(() => false)
+    willChangeCurrent.update(false)
   }
 
   const attack = async e => {
     // Change pattern/sound
-    if (blink) {
+    if (willChangeCurrent.value) {
       const id = parseInt(e.target.getAttribute('id'))
-      return changeSelected(blink, id)
+      return changeCurrent(willChangeCurrent.value, id)
     }
     // Play
-    switch (get(mode)) {
+    switch (mode.value) {
       case 'sound':
-        lastNotePlayed.update(() => note)
-        play(note)
-        active = true
+        currentNote.update(pad.note)
+        play(pad.note, pad.id)
+        pad.active = true
         break
       case 'pattern':
         const patternNote = e.target.childNodes[0].lastChild.innerHTML.slice(
@@ -89,11 +70,11 @@
           3
         )
         longPress(patternNote)
-        if (step === 'N') {
-          setStep(padID, get(lastNotePlayed))
+        if (pad.step === 'N') {
+          patterns.update(pad.id, currentNote.value)
           break
         }
-        setStep(padID, false)
+        patterns.update(pad.id, false)
         break
     }
   }
@@ -101,7 +82,7 @@
   const release = () => {
     clearTimeout(longPressHalfSecond)
     clearTimeout(longPressSecond)
-    active = false
+    stop(pad.note, pad.id)
   }
 </script>
 
@@ -121,7 +102,7 @@
     animation: fade 0.1s forwards;
   }
 
-  .blink {
+  .willChangeCurrent {
     animation: fade;
     animation-duration: 0.5s;
     animation-iteration-count: infinite;
@@ -170,23 +151,27 @@
 </style>
 
 <div
-  id={padID}
+  id={pad.id}
   on:touchstart={attack}
   on:touchend={release}
   on:mouseleave={release}
-  class={`pad ${step !== 'N' ? 'activeStep' : null}`}
-  class:active
-  class:blink>
-  {#if $mode === 'pattern'}
+  class={`
+    pad 
+    ${pad.active ? 'active' : ''} 
+    ${willChangeCurrent.value ? 'willChangeCurrent' : ''}
+    ${pad.step !== 'N' ? 'activeStep' : ''}
+  `}
+>
+  {#if mode.value === 'pattern'}
     <div class="box" transition:fly={{ x: 100, duration: 200, opacity: 0 }}>
-      <p class="note">{note}</p>
-      <p class="step">[{step}]</p>
+      <p class="note">{pad.note}</p>
+      <p class="step">[{pad.step}]</p>
     </div>
   {:else}
     <div
       class="box-index"
       transition:fly={{ x: -100, duration: 200, opacity: 0 }}>
-      <p class="note">{note}</p>
+      <p class="note">{pad.note}</p>
     </div>
   {/if}
 </div>

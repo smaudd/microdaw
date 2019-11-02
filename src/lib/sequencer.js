@@ -1,6 +1,6 @@
 import Tone from 'tone';
 import { writable, get } from 'svelte/store';
-import { selectedSound, selectedPattern, sounds } from './state'
+import { sounds } from './state'
 
 // Esto lo tiene que cargar el loader para que sea reproducible
 const mockNotes = [];
@@ -24,20 +24,6 @@ const initSteps = () => {
   })
 }
 
-const initPatterns = () => {
-  patterns.update(n => {
-    // Buen sitio para buscar en memoria
-    for (let i = 1; i <= 16; i++) {
-      // Crea el pattern
-      n[i] = []
-      for (let j = 0; j < 16; j++) {
-        // Crea el step
-        n[i][j] = []
-      }
-    }
-    return n
-  })
-}
 
 const setStep = (step, note) => {
   patterns.update(n => {
@@ -78,16 +64,6 @@ const synthPart = new Tone.Sequence(
 
 synthPart.loop = true;
 
-sequencer.subscribe(({ time, step }) => {
-  if (step !== 0) {
-    const toPlay = get(patterns)[get(selectedPattern)][step - 1]
-    if (toPlay.length > 0) {
-      trigger(toPlay)
-    }
-  }
-  // trigger(step, notes[step - 1], time);
-});
-
 starter.subscribe(value => {
   if (value) {
     return Tone.Transport.start();
@@ -96,4 +72,4 @@ starter.subscribe(value => {
   return Tone.Transport.stop();
 });
 
-export { sequencer, playPause, initSteps, initPatterns, setStep, patterns };
+export { sequencer, playPause, initSteps, setStep, trigger };

@@ -1,8 +1,7 @@
 import Tone from 'tone'
 const play = (tone, note) => {
-    console.log(note)
     if (note.length > 0) {
-        tone.synth.triggerAttackRelease(note, '2n').toMaster()
+        tone.triggerAttackRelease(note, '2n').toMaster()
     }
 }
 

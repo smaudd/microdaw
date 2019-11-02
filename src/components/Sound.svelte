@@ -1,8 +1,11 @@
 <script>
   import Slider from './Slider.svelte'
+  import { afterUpdate } from 'svelte'
   export let sound
+  console.log(sound)
+  let envelopeSliders
+
   const handleRange = (type, val) => {
-    console.log(type, val)
     switch (type) {
       case 'attack':
         sound.set({
@@ -30,34 +33,44 @@
         break
     }
   }
+
+  const setEnvelopeSliders = () => {
+    console.log(sound)
+    envelopeSliders = [
+      {
+        min: 0.1,
+        max: 10,
+        type: 'attack',
+        callback: handleRange,
+        value: sound.voices[0].envelope.attack,
+      },
+      {
+        min: 0.1,
+        max: 5,
+        type: 'sustain',
+        callback: handleRange,
+        value: sound.voices[0].envelope.sustain,
+      },
+      {
+        min: 0.1,
+        max: 8,
+        type: 'release',
+        callback: handleRange,
+        value: sound.voices[0].envelope.release,
+      },
+    ]
+  }
+
+  afterUpdate(() => {
+    setEnvelopeSliders()
+  })
+  setEnvelopeSliders()
+
   let envelope = {
     attack: sound.voices[0].envelope.attack,
     sustain: sound.voices[0].envelope.sustain,
     release: sound.voices[0].envelope.release,
   }
-  let envelopeSliders = [
-    {
-      min: 0.1,
-      max: 10,
-      type: 'attack',
-      callback: handleRange,
-      value: sound.voices[0].envelope.attack,
-    },
-    {
-      min: 0.1,
-      max: 5,
-      type: 'sustain',
-      callback: handleRange,
-      value: sound.voices[0].envelope.sustain,
-    },
-    {
-      min: 0.1,
-      max: 8,
-      type: 'release',
-      callback: handleRange,
-      value: sound.voices[0].envelope.release,
-    },
-  ]
   const hasEnvelope = !!sound.voices[0].envelope
 </script>
 

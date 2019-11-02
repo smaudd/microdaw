@@ -1,13 +1,12 @@
 <script>
-  import { sequencer } from '../lib/sequencer'
+  import { sequencer, trigger } from '../lib/sequencer'
   import Tone from 'tone'
   import {
-    padMenu,
     initPads,
-    sounds,
     selectedSound,
-    globalMenu,
-    mode,
+    bootstrap,
+    synthLib,
+    notifier,
   } from '../lib/state'
   import { initSteps, initPatterns } from '../lib/sequencer'
   import Pads from './Pads.svelte'
@@ -16,22 +15,62 @@
   import GlobalMenu from './GlobalMenu.svelte'
   import SoftMenu from './SoftMenu.svelte'
   import { fade, fly } from 'svelte/transition'
-  export let pads = []
-  export let menuToggler = false
-  export let padID = null
-  initPads()
-  initPatterns()
-  initSteps()
-  let note = null
-  for (let i = 1; i <= 16; i++) {
-    pads.push({ id: i, active: false })
-  }
-  padMenu.subscribe(value => {
-    menuToggler = value.state
-    padID = value.padID
+  import { afterUpdate } from 'svelte'
+
+  let {
+    pads,
+    sounds,
+    patterns,
+    mode,
+    currentPattern,
+    currentSound,
+    currentNote,
+    willChangeCurrent,
+  } = bootstrap()
+  const maxVoices = 4
+  let padMenu = false
+  let globalMenu = false
+
+  notifier.subscribe(notification => {
+    if (!notification) {
+      return
+    }
+    switch (notification.type) {
+      case 'currentNote':
+        currentNote = notification.value
+        break
+      case 'mode':
+        mode = notification.value
+        break
+      case 'currentSound':
+        currentSound = notification.value
+        break
+      case 'currentPattern':
+        currentPattern = notification.value
+        break
+      case 'patterns':
+        patterns = notification.value
+        break
+      case 'sounds':
+        sounds = notification.value
+        break
+      case 'willChangeCurrent':
+        willChangeCurrent = notification.value
+        break
+    }
   })
-  // TODO manage unsubscription
-  const sound = $sounds[$selectedSound]
+
+  sequencer.subscribe(({ step }) => {
+    if (step !== 0) {
+      const toPlay = patterns.value[currentPattern.value][step - 1]
+      if (toPlay.length > 0) {
+        trigger(toPlay)
+      }
+    }
+  })
+
+  const togglePadMenu = () => (padMenu = !padMenu)
+  const toggleGlobalMenu = () => (globalMenu = !globalMenu)
 </script>
 
 <style>
@@ -76,25 +115,45 @@
 </style>
 
 <div class="container">
-  {#if menuToggler}
+  {#if padMenu}
     <div class="menu-container" transition:fly={{ y: 1000, duration: 1000 }}>
-      <PadMenu {padID} />
+      <PadMenu
+        sound={sounds.value[currentSound.value]}
+        {currentSound}
+        {sounds}
+        {togglePadMenu} />
     </div>
   {:else}
     <div class="pads-container" transition:fly={{ y: 1000, duration: 1000 }}>
-      <SoftMenu />
+      <SoftMenu
+        {togglePadMenu}
+        {toggleGlobalMenu}
+        {mode}
+        {willChangeCurrent}
+        {currentSound}
+        {currentPattern} />
       <div class="container">
-        {#if $globalMenu}
+        <!-- {#if $globalMenu}
           <div transition:fly={{ x: 1000, duration: 1000 }}>
             <GlobalMenu />
           </div>
-        {:else}
-          <div transition:fly={{ x: 1000, duration: 1000 }}>
-            <Sound sound={sound.synth} />
-          </div>
-        {/if}
+        {:else} -->
+        <div transition:fly={{ x: 1000, duration: 1000 }}>
+          <Sound sound={sounds.value[currentSound.value].synth} />
+        </div>
+        <!-- {/if} -->
       </div>
-      <Pads {pads} />
+      <Pads
+        {mode}
+        {sounds}
+        {patterns}
+        {willChangeCurrent}
+        {pads}
+        {currentNote}
+        {currentSound}
+        {currentPattern}
+        pattern={patterns.value[currentPattern.value]}
+        sound={sounds.value[currentSound.value]} />
     </div>
   {/if}
 </div>
