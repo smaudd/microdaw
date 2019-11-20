@@ -5,7 +5,7 @@
     scaleToPadMap,
   } from '../lib/state'
   import { afterUpdate, onDestroy } from 'svelte'
-  import { sequencer } from '../lib/sequencer'
+  import { sequencer, recording } from '../lib/sequencer'
   import { play, stop } from '../lib/audio'
   export let pads
   export let willChangeCurrent
@@ -51,7 +51,10 @@
     const index = id === 0 ? 0 : id - 1
     pads[index].active = true
     queue.push(note)
-    play(sound.synth, queue)
+    if ($recording) {
+      patterns.update($sequencer.step, note)
+    }
+    play(sound.synth, queue, sound.type !== 'Sampler' ? '2n' : false)
     queue = []
   }
 
@@ -64,6 +67,7 @@
 
 <style>
   .pads-grid {
+    height: 100%;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);

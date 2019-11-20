@@ -1,7 +1,14 @@
 import Tone from 'tone'
-const play = (tone, note) => {
+import WaveSurfer from 'wavesurfer.js'
+
+const play = (tone, note, timing) => {
     if (note.length > 0) {
-        tone.triggerAttackRelease(note, '2n').toMaster()
+        if (timing) {
+            tone.triggerAttackRelease(note, timing).toMaster()
+            return
+        }
+
+        tone.triggerAttackRelease(note).toMaster()
     }
 }
 

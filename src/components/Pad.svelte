@@ -1,6 +1,5 @@
 <script>
   import { Plugins, HapticsImpactStyle } from '@capacitor/core'
-  import { setStep } from '../lib/sequencer'
   import { fade, slide, fly } from 'svelte/transition'
   const { Haptics, Device } = Plugins
   export let willChangeCurrent
@@ -19,7 +18,7 @@
   const hapticsImpact = async style => {
     const info = await Device.getInfo()
     if (info.platform === 'ios' || info.platform === 'android') {
-      Haptics.vibrate()
+      Haptics.style
     }
   }
 
@@ -140,9 +139,6 @@
   }
 
   @keyframes fade {
-    from {
-      /* background: transparent; */
-    }
     to {
       background: var(--primary);
       opacity: 0.4;

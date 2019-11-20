@@ -1,14 +1,8 @@
 <script>
   import { onDestroy } from 'svelte'
   import { afterUpdate } from 'svelte'
-  import {
-    selectedSound,
-    selectedPattern,
-    changeMode,
-    onChange,
-  } from '../lib/state'
   import { fade } from 'svelte/transition'
-  import { sequencer, playPause } from '../lib/sequencer'
+  import { sequencer, playPause, recording } from '../lib/sequencer'
   export let togglePadMenu
   export let mode
   export let currentPattern
@@ -44,6 +38,10 @@
     grid-template-rows: 1fr 1fr;
     grid-gap: var(--px0);
   }
+  .recording {
+    background: var(--primary-light);
+    color: var(--secondary);
+  }
 </style>
 
 <div class="soft-menu">
@@ -60,5 +58,11 @@
     <div class="btn" on:click={togglePadMenu}>settings</div>
   </div>
   <div class="btn" on:click={() => mode.update(mode.value)}>{mode.value}</div>
-  <div class="btn" on:click={playPause}>play</div>
+  <div class="box">
+    <div class="btn" on:click={playPause}>play</div>
+    <div 
+      class={`btn ${$recording && 'recording'}`}
+      on:click={() => recording.update(n => !n)}
+    >record</div>
+  </div>
 </div>

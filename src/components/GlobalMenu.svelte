@@ -1,6 +1,7 @@
 <script>
   import Tone from 'tone'
   import Slider from './Slider.svelte'
+  export let sounds
   let bpm = {
     type: 'BPM',
     value: Tone.Transport.bpm.value,

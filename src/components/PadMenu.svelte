@@ -16,9 +16,10 @@
   let trans = false
   
   const handleSelection = (type, value) => {
+    console.log(type, value)
     switch (type) {
       case 'synth':
-        sounds.update(currentSound.value, { synth: value })
+        sounds.update(currentSound.value, { synth: value, type: value })
         break
       case 'tone':
         sounds.update(currentSound.value, { tone: value })
@@ -114,7 +115,7 @@
         placeholder="Choose your engine"
         items={Object.keys(synthLib)}
         type="synth"
-        selected={sound.synth.voices[0]} />
+        selected={sound.type} />
       <Select
         callback={handleSelection}
         placeholder="Choose your tone"

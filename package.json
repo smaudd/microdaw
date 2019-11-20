@@ -29,7 +29,8 @@
     "es6-shim": "^0.35.5",
     "rollup-plugin-babel": "^4.3.3",
     "sirv-cli": "^0.4.4",
-    "tone": "^13.8.25"
+    "tone": "^13.8.25",
+    "wavesurfer.js": "^3.2.0"
   },
   "scripts": {
     "mobile": "npm run build && npx cap copy android && npx cap update android npx cap sync android && npx cap open android",

@@ -1,21 +1,13 @@
 <script>
   import { sequencer, trigger } from '../lib/sequencer'
-  import Tone from 'tone'
-  import {
-    initPads,
-    selectedSound,
-    bootstrap,
-    synthLib,
-    notifier,
-  } from '../lib/state'
-  import { initSteps, initPatterns } from '../lib/sequencer'
+  import { bootstrap, notifier } from '../lib/state'
   import Pads from './Pads.svelte'
   import PadMenu from './PadMenu.svelte'
   import Sound from './Sound.svelte'
   import GlobalMenu from './GlobalMenu.svelte'
   import SoftMenu from './SoftMenu.svelte'
+  import Mixer from './Mixer.svelte'
   import { fade, fly } from 'svelte/transition'
-  import { afterUpdate } from 'svelte'
 
   let {
     pads,
@@ -32,9 +24,7 @@
   let globalMenu = false
 
   notifier.subscribe(notification => {
-    if (!notification) {
-      return
-    }
+    if (!notification) return
     switch (notification.type) {
       case 'currentNote':
         currentNote = notification.value
@@ -76,10 +66,18 @@
 <style>
   :global(:root) {
     --primary: #fa8072;
+    /* --primary: green; */
     --primary-light: #f7b2b7;
+    /* --primary-light: green; */
+
     --secondary: #7f2982;
+
+    /* --secondary: green; */
     --background: #16001e;
-    --font: sans-serif;
+
+    /* --background: blue; */
+    /* font-family:  */
+    --font: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     --px0: 5px;
     --px1: 10px;
     --px2: 20px;
@@ -87,7 +85,19 @@
   :global(body) {
     height: 100vh;
     padding: var(--px0);
+    /* font-family: var(--font);
+     */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-weight: bolder;
   }
+
+  :global(.wavesurfer-handle) {
+    background-color: hsla(356, 81%, 83%, 0.1);
+    border: 10px solid hsla(356, 81%, 83%, 0.1);
+    width: 0% !important;
+  }
+
   .container {
     height: 100%;
     display: grid;
@@ -101,6 +111,7 @@
     overflow: hidden;
     background: var(--background);
     grid-gap: var(--px0);
+    position: relative;
   }
   .menu-container {
     height: 100%;
@@ -111,6 +122,10 @@
     right: 0;
     bottom: 0;
     background: var(--background);
+  }
+  .globalMenu {
+    z-index: 99;
+    position: absolute;
   }
 </style>
 
@@ -133,27 +148,31 @@
         {currentSound}
         {currentPattern} />
       <div class="container">
-        <!-- {#if $globalMenu}
-          <div transition:fly={{ x: 1000, duration: 1000 }}>
-            <GlobalMenu />
-          </div>
-        {:else} -->
-        <div transition:fly={{ x: 1000, duration: 1000 }}>
+        {#if globalMenu}
+          <GlobalMenu {sounds} />
+        {:else}
           <Sound sound={sounds.value[currentSound.value].synth} />
-        </div>
-        <!-- {/if} -->
+        {/if}
       </div>
-      <Pads
-        {mode}
-        {sounds}
-        {patterns}
-        {willChangeCurrent}
-        {pads}
-        {currentNote}
-        {currentSound}
-        {currentPattern}
-        pattern={patterns.value[currentPattern.value]}
-        sound={sounds.value[currentSound.value]} />
+      {#if !globalMenu}
+        <!-- <div class:globalMenu > -->
+        <Pads
+          {mode}
+          {sounds}
+          {patterns}
+          {willChangeCurrent}
+          {pads}
+          {currentNote}
+          {currentSound}
+          {currentPattern}
+          pattern={patterns.value[currentPattern.value]}
+          sound={sounds.value[currentSound.value]} />
+        <!-- </div> -->
+      {:else}
+        <!-- <div> -->
+        <Mixer {sounds} />
+        <!-- </div> -->
+      {/if}
     </div>
   {/if}
 </div>

@@ -1,20 +1,12 @@
-import { writable } from "svelte/store";
+import { writable, get } from "svelte/store";
+import WaveSurfer from 'wavesurfer.js'
+import Region from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js'
 import Tone from 'tone'
-import { initSteps } from "./sequencer";
-
-
-const mode = writable('sound')
-const onChange = writable(false)
-const tones = writable({})
-const selectedSound = writable(1)
-const selectedPattern = writable(1)
-const sounds = writable({})
-const lastNotePlayed = writable(null)
-const globalMenu = writable(false)
 
 const synthLib = {
-    'Synth': new Tone.PolySynth(4, Tone.Synth),
-    'FMSynth': new Tone.PolySynth(4, Tone.FMSynth)
+    'Synth': () => new Tone.PolySynth(4, Tone.Synth),
+    'FMSynth': () => new Tone.PolySynth(4, Tone.FMSynth),
+    'Sampler': () => new Tone.Sampler()
 }
 
 
@@ -37,6 +29,111 @@ const toneLib = [
     'A#', // 10
     'B', // 11
 ]
+
+const waveUI = writable({ instance: null, blob: null })
+
+waveUI.init = (waveColor = 'red', sound, blob) => {
+    waveUI.update(() => {
+        return {
+            instance: WaveSurfer.create({
+                container: '#waveform',
+                waveColor: waveColor,
+                progressColor: 'transparent',
+                hideScrollbar: true,
+                interact: false,
+                plugins: [Region.create({})],
+            }),
+        }
+    })
+    waveUI.initListeners(sound, blob)
+}
+
+waveUI.load = (blob, buffer) => {
+    const wavesurfer = get(waveUI).instance
+    wavesurfer.loadBlob(blob)
+    waveUI.update(({ instance }) => (
+        {
+            instance,
+            buffer,
+            blob,
+            reversed: false
+        }
+    ))
+}
+
+waveUI.updateReversed = (bool) => {
+    waveUI.update(n => (
+        {
+            ...n,
+            reversed: bool
+        }
+    ))
+}
+
+waveUI.reverse = (sound) => {
+    const ui = get(waveUI)
+    const { buffer, instance } = ui
+    const { start, end } = instance.currentRegion
+    if (!ui.reversed) {
+        instance.loadDecodedBuffer(buffer.get())
+        sound.add('C4', buffer.slice(start, end))
+        waveUI.updateReversed(true)
+        return
+    }
+    sound.add('C4', buffer.slice(start, end))
+    instance.loadDecodedBuffer(buffer.get())
+    waveUI.updateReversed(false)
+}
+
+waveUI.initListeners = (sound, color = 'hsla(400, 100%, 30%, 0.5)') => {
+    const wavesurfer = get(waveUI).instance
+    console.log(wavesurfer)
+    wavesurfer.on('ready', e => {
+        if (Object.keys(wavesurfer.regions.list).length === 0) {
+            const region = wavesurfer.addRegion({
+                start: 0,
+                end: wavesurfer.getDuration(),
+                color: color,
+                minLength: 0,
+                maxLength: wavesurfer.getDuration(),
+            })
+            region.initialWidth = region.element.clientWidth
+            region.on('update-end', e => {
+                const { buffer } = get(waveUI)
+                let { start, end } = region
+                
+                if (start < 0) {
+                    start = 0
+                    region.start = 0
+                }
+                if (end > buffer.duration || end <= start) {
+                    end = buffer.duration
+                    region.end = buffer.duration
+                }
+                if (start > end || end < start) {
+                    start = 0
+                    region.start = 0
+                    end = buffer.duration
+                    region.end = buffer.duration
+                    
+                }
+                if (region.element.clientWidth < 10) {
+                    console.log('HERE')
+                    region.element.style.width = region.initialWidth + 'px'
+                    region.element.style.left = '0px'
+                    console.log(region.element.style.width)
+                }
+                sound.add('C4', buffer.slice(start, end))
+                wavesurfer.currentRegion = region
+            })
+            console.log(region)
+            region.on('out', e => {
+                console.log(e)
+            })
+            wavesurfer.currentRegion = region
+        }
+    })
+}
 
 const generateScale = (tone, scale) => {
     const toneRef = [...toneLib]
@@ -117,7 +214,7 @@ const bootstrap = () => {
         data.mode.value = 'sound'
         notify('mode', data.mode)
     }
-    data.sounds.update = (id, { tone, scale, synth }) => {
+    data.sounds.update = (id, { tone, scale, synth, type }) => {
         if (scale) {
             data.sounds.value[id].scale = scale
         }
@@ -125,7 +222,8 @@ const bootstrap = () => {
             data.sounds.value[id].tone = tone
         }
         if (synth) {
-            data.sounds.value[id].synth = synthLib[synth]
+            data.sounds.value[id].type = type
+            data.sounds.value[id].synth = synthLib[synth]()
         }
         notify('sounds', data.sounds)
     }
@@ -158,7 +256,6 @@ const bootstrap = () => {
     }
     data.currentPattern.update = n => {
         data.currentPattern.value = n
-        console.log(data.currentPattern)
         notify('currentPattern', data.currentPattern)
     }
     data.willChangeCurrent.update = (val) => {
@@ -208,7 +305,10 @@ const initSounds = () => {
         n[i].octave = 3
         n[i].tone = 'C'
         n[i].scale = 'Major'
-        n[i].synth = synthLib["Synth"]
+        n[i].loop = false
+        // Creates an instance of the synth engine
+        n[i].type = 'Synth'
+        n[i].synth = synthLib['Synth']()
     }
     return n
 }
@@ -217,10 +317,9 @@ export {
     bootstrap,
     generateScale,
     scaleToPadMap,
-    sounds,
     synthLib,
     toneLib,
     scaleLib,
-    mode,
-    notifier
+    notifier,
+    waveUI
 }
